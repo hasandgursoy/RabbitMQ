@@ -11,7 +11,7 @@ namespace RabbitMQ.Subscriber
     public static class Exchanges
     {
 
-        public static void FanoutExhangeConsumerRun()
+        public static void FanoutExhangeConsumer()
         {
             var factory = new ConnectionFactory()
             {
@@ -58,7 +58,7 @@ namespace RabbitMQ.Subscriber
             Console.ReadLine();
         }
 
-        public static void DirectExchange()
+        public static void DirectExchangeConsumer()
         {
             var factory = new ConnectionFactory()
             {
@@ -104,5 +104,106 @@ namespace RabbitMQ.Subscriber
 
             Console.ReadLine();
         }
+
+        public static void TopicExchangeConsumer()
+        {
+            var factory = new ConnectionFactory()
+            {
+                HostName = "localhost",
+                UserName = "guest",
+                Password = "guest",
+            };
+
+
+            using var connection = factory.CreateConnection();
+
+            var channel = connection.CreateModel();
+
+
+
+
+
+            channel.BasicQos(0, 1, false);
+
+            var consumer = new EventingBasicConsumer(channel);
+
+            var queueName = channel.QueueDeclare().QueueName;
+
+            // Ortasında Error yazanı bulmaya çalışıyoruz.
+            // "info.#" = başında info olsun sonunda ne olursa olsun diyoruz.
+
+            var routeKey = "*.Error.*";
+
+            channel.QueueBind(queueName,"logs-topic",routeKey);
+
+            channel.BasicConsume(queueName, false, consumer);
+
+            Console.WriteLine("Loglar dinleniyor.");
+
+            consumer.Received += (object? sender, BasicDeliverEventArgs e) =>
+            {
+                var message = Encoding.UTF8.GetString(e.Body.ToArray());
+
+
+                Console.WriteLine("Gelen Mesaj : " + message);
+
+                //File.AppendAllText("log-critical.txt", message + "\n");
+
+                channel.BasicAck(e.DeliveryTag, false); // bunu tanımlamamızın sebebi channel.BasicConsume(2.parametre false yaptık.)
+
+
+
+
+            };
+
+            Console.ReadLine();
+        }
+
+        public static void HeaderExchangeConsumer()
+        {
+            var factory = new ConnectionFactory()
+            {
+                HostName = "localhost",
+                UserName = "guest",
+                Password = "guest",
+            };
+
+
+            using var connection = factory.CreateConnection();
+
+            var channel = connection.CreateModel();
+
+            channel.BasicQos(0, 1, false);
+
+            var consumer = new EventingBasicConsumer(channel);
+
+            var queueName = channel.QueueDeclare().QueueName;
+
+            // Ortasında Error yazanı bulmaya çalışıyoruz.
+            // "info.#" = başında info olsun sonunda ne olursa olsun diyoruz.
+
+            var routeKey = "*.Error.*";
+
+            channel.QueueBind(queueName, "logs-topic", routeKey);
+
+            channel.BasicConsume(queueName, false, consumer);
+
+            Console.WriteLine("Loglar dinleniyor.");
+
+            consumer.Received += (object? sender, BasicDeliverEventArgs e) =>
+            {
+                var message = Encoding.UTF8.GetString(e.Body.ToArray());
+
+                Console.WriteLine("Gelen Mesaj : " + message);
+
+                //File.AppendAllText("log-critical.txt", message + "\n");
+
+                channel.BasicAck(e.DeliveryTag, false); // bunu tanımlamamızın sebebi channel.BasicConsume(2.parametre false yaptık.)
+
+            };
+
+            Console.ReadLine();
+        }
+
     }
 }
