@@ -3,4 +3,4 @@ using RabbitMQ.Subscriber;
 
 //BasicRabbitMQConsumer.BasicRabbitMQConsumerRun();
 
-Exchanges.FanoutExhangeConsumerRun();
+Exchanges.DirectExchange();

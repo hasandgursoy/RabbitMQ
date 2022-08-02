@@ -4,5 +4,5 @@ using RabbitMQ.Publisher;
 
 //BasicRabbitMQ.BasicRabbitMQRun();
 
-Exchanges.FanoutExhangeRun();
+Exchanges.DirectExchange();
 
