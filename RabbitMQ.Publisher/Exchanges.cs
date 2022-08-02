@@ -168,34 +168,22 @@ namespace RabbitMQ.Publisher
 
             var channel = connection.CreateModel();
 
-            // Publisher tarfından kuyruğu oluşturmayacağız bu sefer gerçek dünya senaryolarında tabiki de oluşturulur ancak biz suan oluşturmayacağız.
-            //channel.QueueDeclare("hello-queue", true, false, false);
-
-            // Declare ettiğimiz exchange yapısını subscriber tarafında da yapabiliriz. ama burda declare t
-            channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic);
 
 
+            channel.ExchangeDeclare("header-exchange", durable: true, type: ExchangeType.Headers);
+
+            Dictionary<string, object> headers = new Dictionary<string, object>();
+            headers.Add("format", "pdf");
+            headers.Add("shape", "a4");
+
+            var properties = channel.CreateBasicProperties();
+            properties.Headers = headers;
+
+            // Verileri header üzerinden göndericeğimiz için route key boş kalacak.
+            channel.BasicPublish("header-exchange", String.Empty, properties, Encoding.UTF8.GetBytes("header mesajım"));
 
 
-            Random rnd = new Random();
-            Enumerable.Range(1, 50).ToList().ForEach(x =>
-            {
-
-
-                LogNames log1 = (LogNames)rnd.Next(1, 5);
-                LogNames log2 = (LogNames)rnd.Next(1, 5);
-                LogNames log3 = (LogNames)rnd.Next(1, 5);
-                var routeKey = $"{log1}.{log2}.{log3}";
-
-                string message = $"Log-Type : {log1}-{log2}-{log3}";
-                var messageBody = Encoding.UTF8.GetBytes(message);
-
-
-                // İlgili exhange'in route'una messajımızı gönderiyoruz.
-                channel.BasicPublish("logs-topic", routeKey, null, messageBody);
-
-                Console.WriteLine($"Log gönderilmiştir : {message}");
-            });
+            Console.WriteLine("Messaj gönderiliyor");
 
 
             Console.ReadLine();

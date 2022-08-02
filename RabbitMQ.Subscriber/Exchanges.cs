@@ -73,7 +73,7 @@ namespace RabbitMQ.Subscriber
             var channel = connection.CreateModel();
 
 
-          
+
 
 
             channel.BasicQos(0, 1, false);
@@ -134,7 +134,7 @@ namespace RabbitMQ.Subscriber
 
             var routeKey = "*.Error.*";
 
-            channel.QueueBind(queueName,"logs-topic",routeKey);
+            channel.QueueBind(queueName, "logs-topic", routeKey);
 
             channel.BasicConsume(queueName, false, consumer);
 
@@ -173,37 +173,36 @@ namespace RabbitMQ.Subscriber
 
             var channel = connection.CreateModel();
 
-            channel.BasicQos(0, 1, false);
+
 
             var consumer = new EventingBasicConsumer(channel);
 
             var queueName = channel.QueueDeclare().QueueName;
 
-            // Ortasında Error yazanı bulmaya çalışıyoruz.
-            // "info.#" = başında info olsun sonunda ne olursa olsun diyoruz.
+            Dictionary<string, object> headers = new Dictionary<string, object>();
 
-            var routeKey = "*.Error.*";
+            headers.Add("format", "pdf");
+            headers.Add("shape", "a4");
+            // all dersek mutlaka key value değerleri komple eşleşmesi laızm
+            // any dersek herhangi biri eşleşse yeter.
+            headers.Add("x-match", "all");
 
-            channel.QueueBind(queueName, "logs-topic", routeKey);
+            channel.QueueBind(queueName, "header-exchange", string.Empty, headers);
 
             channel.BasicConsume(queueName, false, consumer);
 
-            Console.WriteLine("Loglar dinleniyor.");
+            Console.WriteLine("Loglar Dinleniyor");
 
             consumer.Received += (object? sender, BasicDeliverEventArgs e) =>
             {
                 var message = Encoding.UTF8.GetString(e.Body.ToArray());
 
-                Console.WriteLine("Gelen Mesaj : " + message);
-
-                //File.AppendAllText("log-critical.txt", message + "\n");
-
-                channel.BasicAck(e.DeliveryTag, false); // bunu tanımlamamızın sebebi channel.BasicConsume(2.parametre false yaptık.)
-
+                Console.WriteLine("Gelen message : "+message);
             };
 
             Console.ReadLine();
         }
+
 
     }
 }
