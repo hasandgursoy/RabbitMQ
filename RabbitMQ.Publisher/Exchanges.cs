@@ -1,8 +1,10 @@
 ﻿using RabbitMQ.Client;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Publisher
@@ -126,7 +128,7 @@ namespace RabbitMQ.Publisher
             // Declare ettiğimiz exchange yapısını subscriber tarafında da yapabiliriz. ama burda declare t
             channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic);
 
-            
+
 
 
             Random rnd = new Random();
@@ -178,9 +180,19 @@ namespace RabbitMQ.Publisher
 
             var properties = channel.CreateBasicProperties();
             properties.Headers = headers;
+            // Mesajları kalıcı hale getirmek istiyorsak Persistent parametresini true yapıyoruz.
+            properties.Persistent = true;
+
+            // RabbitMQ ile complex yapıdaki şeyleri gönderebiliyoruzç
+            // PDF, Image objeler aklımıza ne geliyorsa gönderebiliyoruz Byte'a çevirip.
+            var product = new Product { Id = 1, Name = "Kalem", Price = 100, Stock = 10 };
+            var productJsonString = JsonSerializer.Serialize(product);
+
+
+
 
             // Verileri header üzerinden göndericeğimiz için route key boş kalacak.
-            channel.BasicPublish("header-exchange", String.Empty, properties, Encoding.UTF8.GetBytes("header mesajım"));
+            channel.BasicPublish("header-exchange", String.Empty, properties, Encoding.UTF8.GetBytes(productJsonString));
 
 
             Console.WriteLine("Messaj gönderiliyor");
@@ -188,6 +200,8 @@ namespace RabbitMQ.Publisher
 
             Console.ReadLine();
         }
+
+
 
     }
 }

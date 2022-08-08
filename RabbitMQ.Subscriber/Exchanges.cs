@@ -1,9 +1,11 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Subscriber
@@ -195,9 +197,11 @@ namespace RabbitMQ.Subscriber
 
             consumer.Received += (object? sender, BasicDeliverEventArgs e) =>
             {
-                var message = Encoding.UTF8.GetString(e.Body.ToArray());
 
-                Console.WriteLine("Gelen message : "+message);
+                var message = Encoding.UTF8.GetString(e.Body.ToArray());
+                Product? product = JsonSerializer.Deserialize<Product>(message);
+
+                Console.WriteLine($"Gelen message :{ product?.Id}-{product?.Name}");
             };
 
             Console.ReadLine();
